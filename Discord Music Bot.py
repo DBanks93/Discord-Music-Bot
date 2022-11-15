@@ -10,22 +10,23 @@ from nextcord.utils import get
 from nextcord.ext import tasks
 from youtube_dl import YoutubeDL
 
+#Author @DBanks93
 
-''' this is still very much work in progress
+# this is still very much work in progress
 
- Feel free to edit it to make it your own :)
+# Feel free to edit it to make it your own :)
 
- at the bottom of the code change the <YOUR_BOT_TOCKEN> so that you can run it with your own bot :)
-'''
-
-client = commands.Bot(command_prefix = '.')
-voice = None
-channelName = None
-channel_Ctx = None
-songs = []
+client = commands.Bot(command_prefix = '.') # bot client
+voice = None 
+channelName = None # name of the channel to send text about song updates
+channel_Ctx = None # ctx of the channel to send text about song updates
+songs = [] # array of songs or "playlist"
 
 
-servers = []
+servers = [] # list of servers the bot is currently playing songs in
+
+HELP_ICON_URL = 'https://cdn.discordapp.com/attachments/792720413083566095/887434101576069170/unnamed.png' 
+YOUTUBE_ICON_URL = 'https://cdn.discordapp.com/attachments/792720413083566095/887432799722827806/YouTube-Emblem.png'
 
 class server(object):
     def __init__(self, ID, channelName, channel_Ctx, voice):
@@ -40,7 +41,7 @@ class server(object):
 
 @client.event
 async def on_ready():
-    await client.change_presence(status=nextcord.Status.idle, activity=nextcord.Game(name ="Hacking...", type=3))
+    await client.change_presence(status=nextcord.Status.idle, activity=nextcord.Game(name ="Playing Music...", type=3))
     print("Bot is ready.")
     client.loop.create_task(status_task())
     
@@ -51,6 +52,8 @@ async def status_task():
         await asyncio.sleep(5)
         await client.change_presence(status=nextcord.Status.idle, activity=nextcord.Streaming(name ="◖ᵔᴥᵔ◗ ♪ ♫ ", url="https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley"))
         await asyncio.sleep(5)
+        
+        # Checks if a song is playing if it isn't it plays the next sone in the playlist 
         for i in servers:
             try:
                 if not i.voice.is_playing():
@@ -59,23 +62,22 @@ async def status_task():
                         embed = nextcord.Embed(
                         colour = nextcord.Colour.blue()
                         )
-                        embed.set_author(name="Zonico's Music Bot", icon_url='https://cdn.discordapp.com/attachments/792720413083566095/887434101576069170/unnamed.png')
-                        embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/792720413083566095/887432799722827806/YouTube-Emblem.png')    
+                        embed.set_author(name="Zonico's Music Bot", icon_url=HELP_ICON_URL)
+                        embed.set_thumbnail(url=YOUTUBE_ICON_URL)    
                         embed.add_field(name='Now playing:', value=name, inline = False)
                         embed.set_footer(text="(Created by Zonico)")
                         await channel_Ctx.send(embed = embed)      
             except:
                 pass
 
-
+# help command - shows all the commands of the bot
 client.remove_command('help')
 @client.command()
 async def help(ctx):
-    #emoji =  discord.utils.get(client.emojis, name="ZonicoServer")
     embed = nextcord.Embed(
         colour = nextcord.Colour.orange(),  description="***PLEASE NOTE: This bot is still very much Work In Progress, If you find any bugs please let my owner Zonico know :)***"
     )
-    embed.set_author(name='Help', icon_url='https://cdn.discordapp.com/attachments/792720413083566095/887434101576069170/unnamed.png')
+    embed.set_author(name='Help', icon_url=HELP_ICON_URL)
     embed.add_field(name='!play / !p, url / songtitle', value='To play a song', inline = False)
     embed.add_field(name='!skip', value='To skip a song', inline = False)
     embed.add_field(name='!playlist', value='To view the list of current songs', inline = False)
@@ -86,7 +88,7 @@ async def help(ctx):
 
 
 
-
+# adds the bot to the voice channel
 @client.command()
 async def join(ctx):
     ID = ctx.guild.id
@@ -101,9 +103,7 @@ async def join(ctx):
             if i.channel_Ctx.guild.voice_client not in client.voice_clients:
                 found = 'Meh'
                 currentServer = i
-                #await i.channelName.guild.voice_client.disconnect()
-    #print(servers)
-                
+    
     if found == False:
         channelName = ctx.author.voice.channel
         voice = await channelName.connect()
@@ -119,6 +119,8 @@ async def join(ctx):
     else:
         await ctx.send("I am already in a Voice channel")
 
+
+# disconnects bot from the voice channel
 @client.command()
 async def disconnect(ctx):
     for i in servers:
@@ -131,7 +133,9 @@ async def disconnect(ctx):
     await ctx.send("I am not in a VC")
 
 
-
+# searches and finds a song
+# if the bot is not currently playing a song it'll play this song
+# otherwise it'll add the song to a playlist to be played later
 @client.command(aliases=['pl','p'])
 async def play(ctx, *,url):
     ID = ctx.guild.id
@@ -144,7 +148,6 @@ async def play(ctx, *,url):
                 currentServer = i
                 found = 'Meh'
             if i.channel_Ctx.guild.voice_client not in client.voice_clients:
-                #await i.channelName.guild.voice_client.disconnect() 
                 found = 'Meh'
                 currentServer = i
                 channelName = ctx.author.voice.channel
@@ -190,10 +193,9 @@ async def play(ctx, *,url):
             embed = nextcord.Embed(
             colour = nextcord.Colour.blue()
             )
-            embed.set_author(name="Zonico's Music Bot", icon_url='https://cdn.discordapp.com/attachments/792720413083566095/887434101576069170/unnamed.png')
-            embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/792720413083566095/887432799722827806/YouTube-Emblem.png')    
+            embed.set_author(name="Zonico's Music Bot", icon_url=HELP_ICON_URL)
+            embed.set_thumbnail(url=YOUTUBE_ICON_URL)    
             embed.add_field(name='Now playing:', value=name, inline = False)
-            #embed.add_field(name='Please Note:', value='This bot is still very much Work In Progress, If you find any bugs please let my owner Zonico know :)', inline = False)
             embed.set_footer(text="(Created by Zonico)")
             await ctx.send(embed = embed)
         else:
@@ -202,6 +204,7 @@ async def play(ctx, *,url):
         return
     await ctx.send("Sorry I'm already in another VC in the server")
 
+# Skips the current song and plays the next song in the playlist if there is one
 @client.command()
 async def skip(ctx):
     for i in servers:
@@ -215,21 +218,22 @@ async def skip(ctx):
                     embed = nextcord.Embed(
                     colour = nextcord.Colour.blue()
                     )
-                    embed.set_author(name="Zonico's Music Bot", icon_url='https://cdn.discordapp.com/attachments/792720413083566095/887434101576069170/unnamed.png')
-                    embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/792720413083566095/887432799722827806/YouTube-Emblem.png')    
+                    embed.set_author(name="Zonico's Music Bot", icon_url=HELP_ICON_URL)
+                    embed.set_thumbnail(url=YOUTUBE_ICON_URL)    
                     embed.add_field(name='Now playing:', value=name, inline = False)
                     embed.set_footer(text="(Created by Zonico)")
                     await ctx.send(embed = embed)
         pass
 
+# Shows all the songs current;y in the playlist
 @client.command(aliases=['list','songs', 'q', 'queue'])
 async def playlist(ctx):
     for i in servers:
         if i.serverId == ctx.guild.id:
             embed = nextcord.Embed(
             colour = nextcord.Colour.blue())
-            embed.set_author(name="Zonico's Music Bot", icon_url='https://cdn.discordapp.com/attachments/792720413083566095/887434101576069170/unnamed.png')
-            embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/792720413083566095/887432799722827806/YouTube-Emblem.png')
+            embed.set_author(name="Zonico's Music Bot", icon_url=HELP_ICON_URL)
+            embed.set_thumbnail(url=YOUTUBE_ICON_URL)
             x = 1
             if len(i.songs) >= 1:
                 for info in i.songs:
@@ -245,6 +249,7 @@ async def playlist(ctx):
             else:
                 await ctx.send("No more songs will play")
 
+# Plays the next song in a playlist
 def play_Youtube(currentServer):
         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
         currentServer.voice.pause()
